@@ -50,5 +50,8 @@ Generamos el archivo `kernel.iso` final mediante `grub-mkrescue` y lo emulamos.
 * **Comando de emulación:** `qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso`
 * **Justificación:** El uso del emulador nos permitió validar que nuestro `kernel.bin` estaba correctamente empaquetado por GRUB dentro del directorio `/boot/` de la ISO. El mensaje impreso en pantalla con colores (amarillo sobre negro) prueba que la función `print_str` implementada en C pudo escribir exitosamente en el buffer de la memoria de video virtual (`0xb8000`), confirmando que todo el flujo de ejecución —desde el bootloader hasta la lógica de alto nivel— funciona correctamente.
 
+## 5. Video de demostración
+https://drive.google.com/file/d/1vilZdaRI5FEhHh9iwZX1X7WPXQcUJYWj/view?usp=drive_link
+
 ---
 *Desarrollado por: Darwin Román (DDK Group)*
