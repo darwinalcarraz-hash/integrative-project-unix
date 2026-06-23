@@ -1,57 +1,57 @@
-# PARTE 2 — Construir un kernel de 64 bits
+# PART 2 — Building a 64-bit Kernel
 
-Este documento detallamos el proceso de construcción de nuestro núcleo de sistema operativo de 64 bits. El proyecto se divide en dos episodios principales, evidenciando el código y los comandos que desarrollamos.
+This document details the process of building our 64-bit operating system kernel. The project is divided into two main episodes, showcasing the code and commands we developed.
 
-## Estructura del Proyecto
-- `src/`: Código fuente principal (implementaciones en C y Ensamblador).
-- `targets/x86_64/`: Scripts del enlazador (linker.ld) y configuración del bootloader (grub.cfg).
-- `Dockerfile`: Entorno de construcción reproducible (GCC cross-compiler, NASM, GRUB, xorriso).
-- `Makefile`: Automatización del proceso de compilación y empaquetado.
+## Project Structure
+- `src/`: Main source code (implementations in C and Assembly).
+- `targets/x86_64/`: Linker scripts (linker.ld) and bootloader configuration (grub.cfg).
+- `Dockerfile`: Reproducible build environment (GCC cross-compiler, NASM, GRUB, xorriso).
+- `Makefile`: Automation of the compilation and packaging process.
 
-## Requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y en ejecución.
-- [QEMU](https://www.qemu.org/) instalado para la emulación.
-
-
-## 1. Entorno de Construcción (Docker)
-Para garantizar un entorno reproducible y no tener problemas de compatibilidad con el compilador cruzado (Cross-Compiler) en nuestros sistemas anfitriones, encapsulamos todas las dependencias en un contenedor Docker.
-
-**![Dockerfile y Makefile](<Dockerfile-Makefile.png>)**
-
-* **Comando de creación de imagen:** `docker build -t buildenv .`
-* **Comando de compilación:** `docker run --rm -v "${PWD}:/build" buildenv make build-x86_64`
-* **Justificación:** En este aprtado configuramos las dependencias nativas como GCC cruzado, NASM y GRUB las cuales pueden generar errores difíciles de rastrear. Con el `Dockerfile` instalamos las dependencias exactas en una imagen basada en Linux. El `Makefile` nos permitió automatizar la creación de los directorios `build/` y `dist/`, de igual forma compilar los archivos objeto (`.o`) y generar la imagen ISO final sin escribir los comandos manualmente cada vez.
-
-## 2. Episodio 1: Mínimo Viable (Multiboot2)
-El primer paso fue lograr que el procesador ejecute nuestro código inicial (escrito en Ensamblador de 32 bits) y escriba en la memoria de video.
-
-**![header.asm y linker.ld ](<header.asm-linker.ld.png>)**
-
-* **Comando ejecutado por el Makefile:** `nasm -f elf64 src/impl/x86_64/boot/main.asm -o build/x86_64/boot/main.o`
-* **Justificación:** Aqui creamos el archivo `header.asm` con el "número mágico" (`0xe85250d6`) requerido por la especificación Multiboot2. Esto es obligatorio para que el bootloader (GRUB) reconozca nuestro binario como un sistema operativo válido. Además, diseñamos el script `linker.ld` para indicar que el punto de entrada es `start` y que nuestro código debe cargarse en la marca de 1 Megabyte en memoria, evitando sobreescribir áreas reservadas por el hardware.
-
-## 3. Episodio 2: Kernel de 64 bits (Long Mode)
-Realizamos la transición del procesador a 64 bits y logramos vincular nuestro código ensamblador con lógica escrita en C.
-
-**![main64.asm y main.c](<main64.asm-main.c.png>)**
+## Requirements
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+- [QEMU](https://www.qemu.org/) installed for emulation.
 
 
-* **Comando de compilación C:** `gcc -c -I src/intf -ffreestanding src/impl/kernel/main.c -o build/kernel/main.o`
-* **Comando de enlace:** `ld -n -o dist/x86_64/kernel.bin -T targets/x86_64/linker.ld [objetos]`
-* **Justificación:** En esta fase, configuramos las tablas de paginación para mapear el primer Gigabyte de memoria y creámos una GDT (*Global Descriptor Table*) de 64 bits para habilitar el *Long Mode*.
-Para la integración con C, compilamos con la bandera `-ffreestanding` porque nuestro kernel no tiene acceso a las bibliotecas estándar del sistema. Para solucionar los problemas de enlace (Name Mangling) entre Ensamblador y C, forzamos la nomenclatura del símbolo en C utilizando `__asm__("kernel_main")`, garantizando que el enlazador (`ld`) pudiera conectar el salto desde `main64.asm` hacia nuestra función principal en C.
+## 1. Build Environment (Docker)
+To ensure a reproducible environment and avoid compatibility issues with the cross-compiler on our host systems, we encapsulate all dependencies in a Docker container.
 
-## 4. Resultado Final y Emulación (QEMU)
-Generamos el archivo `kernel.iso` final mediante `grub-mkrescue` y lo emulamos.
+**![Dockerfile and Makefile](<Dockerfile-Makefile.png>)**
 
-**![PowerShell compilación exitosa](compilaciónexitosa.png)
-![Emulación Qemu](EmulaciónQemu.png)**
+* **Image creation command:** `docker build -t buildenv .`
+* **Compilation command:** `docker run --rm -v "${PWD}:/build" buildenv make build-x86_64`
+* **Rationale:** In this section, we configure native dependencies such as GCC cross-compiler, NASM, and GRUB, which can generate difficult-to-trace errors. With the `Dockerfile`, we install the exact dependencies in a Linux-based image. The `Makefile` allowed us to automate the creation of `build/` and `dist/` directories, as well as compile object files (`.o`) and generate the final ISO image without manually typing commands each time.
 
-* **Comando de emulación:** `qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso`
-* **Justificación:** El uso del emulador nos permitió validar que nuestro `kernel.bin` estaba correctamente empaquetado por GRUB dentro del directorio `/boot/` de la ISO. El mensaje impreso en pantalla con colores (amarillo sobre negro) prueba que la función `print_str` implementada en C pudo escribir exitosamente en el buffer de la memoria de video virtual (`0xb8000`), confirmando que todo el flujo de ejecución —desde el bootloader hasta la lógica de alto nivel— funciona correctamente.
+## 2. Episode 1: Minimum Viable Product (Multiboot2)
+The first step was to get the processor to execute our initial code (written in 32-bit Assembly) and write to video memory.
 
-## 5. Video de demostración
+**![header.asm and linker.ld](<header.asm-linker.ld.png>)**
+
+* **Command executed by Makefile:** `nasm -f elf64 src/impl/x86_64/boot/main.asm -o build/x86_64/boot/main.o`
+* **Rationale:** Here we created the `header.asm` file with the "magic number" (`0xe85250d6`) required by the Multiboot2 specification. This is mandatory for the bootloader (GRUB) to recognize our binary as a valid operating system. Additionally, we designed the `linker.ld` script to specify that the entry point is `start` and that our code should be loaded at the 1 Megabyte mark in memory, avoiding overwriting areas reserved by the hardware.
+
+## 3. Episode 2: 64-bit Kernel (Long Mode)
+We performed the transition from 32-bit to 64-bit mode and successfully linked our assembly code with logic written in C.
+
+**![main64.asm and main.c](<main64.asm-main.c.png>)**
+
+
+* **C compilation command:** `gcc -c -I src/intf -ffreestanding src/impl/kernel/main.c -o build/kernel/main.o`
+* **Linking command:** `ld -n -o dist/x86_64/kernel.bin -T targets/x86_64/linker.ld [objects]`
+* **Rationale:** In this phase, we configured page tables to map the first Gigabyte of memory and created a 64-bit GDT (*Global Descriptor Table*) to enable *Long Mode*.
+For C integration, we compiled with the `-ffreestanding` flag because our kernel does not have access to standard system libraries. To solve linking issues (Name Mangling) between Assembly and C, we forced the symbol naming in C using `__asm__("kernel_main")`, ensuring that the linker (`ld`) could connect the jump from `main64.asm` to our main function in C.
+
+## 4. Final Result and Emulation (QEMU)
+We generated the final `kernel.iso` file using `grub-mkrescue` and emulated it.
+
+**![PowerShell successful compilation](compilaciónexitosa.png)
+![QEMU Emulation](EmulaciónQemu.png)**
+
+* **Emulation command:** `qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso`
+* **Rationale:** The use of the emulator allowed us to validate that our `kernel.bin` was correctly packaged by GRUB inside the `/boot/` directory of the ISO. The colored message printed to the screen (yellow on black) proves that the `print_str` function implemented in C was able to successfully write to the virtual video memory buffer (`0xb8000`), confirming that the entire execution flow—from the bootloader to the high-level logic—works correctly.
+
+## 5. Demonstration Video
 https://drive.google.com/file/d/1vilZdaRI5FEhHh9iwZX1X7WPXQcUJYWj/view?usp=drive_link
 
 ---
-*Desarrollado por: Darwin Román (DDK Group)*
+*Developed by: Darwin Román (DDK Group)*
