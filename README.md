@@ -32,16 +32,18 @@ Para montar el entorno de pruebas, clonamos el repositorio oficial de *Black Hat
 
 A continuación, se detalla el diagrama lógico y la asignación de IPs de nuestra infraestructura emulada:
 
+![ip-consulta](<ipconsultas.png>)
+
 | Hostname | Rol del Servidor | IP Pública (`172.16.10.x`) | IP Corporativa (`10.1.0.x`) |
 | :--- | :--- | :--- | :--- |
 | **`p-web-01`** | Servidor Web 1 (Objetivo) | `172.16.10.10` | N/A |
-| **`p-web-02`** | Servidor Web 2 | `172.16.10.11` | N/A |
-| **`p-ftp-01`** | Servidor FTP | `172.16.10.12` | N/A |
-| **`p-jumpbox-01`**| Servidor de Salto (Pivoting)| `172.16.10.20` | `10.1.0.20` |
-| **`c-db-01`** | Base de Datos Principal | N/A | `10.1.0.10` |
-| **`c-db-02`** | Base de Datos Réplica | N/A | `10.1.0.11` |
-| **`c-redis-01`** | Servidor de Caché (Redis) | N/A | `10.1.0.12` |
-| **`c-backup-01`** | Servidor de Respaldos | N/A | `10.1.0.30` |
+| **`p-web-02`** | Servidor Web 2 | `172.16.10.12` | N/A |
+| **`p-ftp-01`** | Servidor FTP | `172.16.10.11` | N/A |
+| **`p-jumpbox-01`**| Servidor de Salto (Pivoting)| `172.16.10.13` | `10.1.0.12` |
+| **`c-db-01`** | Base de Datos Principal | N/A | `10.1.0.15` |
+| **`c-db-02`** | Base de Datos Réplica | N/A | `10.1.0.16` |
+| **`c-redis-01`** | Servidor de Caché (Redis) | N/A | `10.1.0.14` |
+| **`c-backup-01`** | Servidor de Respaldos | N/A | `10.1.0.13` |
 
 ---
 
