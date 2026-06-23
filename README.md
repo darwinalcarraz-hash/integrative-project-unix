@@ -78,3 +78,6 @@ Al analizar la salida de los códigos de estado HTTP, obtuvimos información cr�
 
 ### 4. Conclusión del Ataque
 Como grupo conlcuimos que este resultado es un éxito rotundo. Pasamos de interactuar con una simple página web pública a mapear su arquitectura de backend. Al descubrir que es un sitio WordPress y ubicar su panel de login, la siguiente fase natural de este *pentest* sería utilizar herramientas de auditoría específicas (como `wpscan`) o ejecutar un ataque de fuerza bruta sobre las credenciales para intentar tomar el control total del servidor y, desde ahí, pivotar hacia la red corporativa interna (`10.1.0.x`).
+
+---
+*Desarrollado por: Keyla Imba (DDK Group)*
