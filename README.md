@@ -182,4 +182,8 @@ El ISO se probó arrancando en una VM limpia de VirtualBox. Se verificó:
 | 6 | Alias ll funcionando | Terminal ejecutando el comando `ll`, demostrando el alias configurado en `.bashrc` de `/etc/skel` | ![Terminal](<Alias ll funcionando.png>) |
 
 ---
+## 6. Video de demostración
+https://drive.google.com/file/d/13G4074Z7a3rDZU40nlZpvsQJ9R6iJMW9/view?usp=sharing
+
+
 *Desarrollado por: Darwin Alcarraz (DDK Group)*
